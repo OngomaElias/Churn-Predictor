@@ -10,8 +10,7 @@ st.set_page_config(
 
 st.title('Telcom Churn Database 📔')
 
-# Create a connection to database
-# Query the database
+# Create a connection to the database
 @st.cache_resource(show_spinner='Connecting to database ...')
 def init_connection():
     return pyodbc.connect(
@@ -25,7 +24,7 @@ def init_connection():
         + st.secrets['PASSWORD']
     )
 
-# Make sure to call init_connection to get the connection object
+# Initialize the connection
 connection = init_connection()
 
 @st.cache_data(show_spinner='Running query ...')
@@ -33,22 +32,13 @@ def running_query(query):
     with connection.cursor() as c:
         c.execute(query)
         rows = c.fetchall()
-        df = pd.DataFrame.from_records(rows,columns=[column[0] for column in c.description])
+        df = pd.DataFrame.from_records(rows, columns=[column[0] for column in c.description])
     return df
 
 def get_all_columns():
     sql_query = "SELECT * FROM " + st.secrets['TABLE_NAME']
     df = running_query(sql_query)
     return df
-
-#st.selectbox('select..', options = ['All columns', 'Numerical Columns', 'Categorical columns'], on_change = get_all_columns)
-# Display the result in Streamlit
-#st.write(get_all_columns())
-
-
-
-
-
 
 # Load data once and use it in the session state
 if 'dataframe' not in st.session_state:
@@ -73,10 +63,6 @@ elif column_type == 'Categorical':
 else:
     st.write("All Columns:")
     st.write(df)
-
-
-
-
 
 # Section to learn about features
 st.header('Learn About Features')
@@ -127,4 +113,3 @@ st.write(f"- Description: {feature_info['Description']}")
 st.write(f"- Type: {feature_info['Type']}")
 if 'Possible Values' in feature_info:
     st.write(f"- Possible Values: {feature_info['Possible Values']}")
-    

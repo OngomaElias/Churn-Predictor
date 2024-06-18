@@ -1,34 +1,59 @@
 # utils.py
 import pandas as pd
 
-def preprocess_input(input_data):
-    # Example preprocessing steps
-    df = pd.DataFrame([input_data])
-    df.fillna(0, inplace=True)
-    # Add more preprocessing steps as needed
-    return df
+import streamlit as st
 
-
-
-
+import pandas as pd
 
 def preprocess_input(input_data):
-    input_data['gender'] = input_data['gender'].map({'Male': 0, 'Female': 1})
-    input_data['MultipleLines'] = input_data['MultipleLines'].map({'No phone service': 0, 'No': 1, 'Yes': 2})
-    input_data['InternetService'] = input_data['InternetService'].map({'No': 0, 'DSL': 1, 'Fiber optic': 2})
-    input_data['OnlineSecurity'] = input_data['OnlineSecurity'].map({'No internet service': 0, 'No': 1, 'Yes': 2})
-    input_data['DeviceProtection'] = input_data['DeviceProtection'].map({'No internet service': 0, 'No': 1, 'Yes': 2})
-    input_data['TechSupport'] = input_data['TechSupport'].map({'No internet service': 0, 'No': 1, 'Yes': 2})
-    input_data['StreamingTV'] = input_data['StreamingTV'].map({'No internet service': 0, 'No': 1, 'Yes': 2})
-    input_data['StreamingMovies'] = input_data['StreamingMovies'].map({'No internet service': 0, 'No': 1, 'Yes': 2})
-    input_data['Contract'] = input_data['Contract'].map({'Month-to-month': 0, 'One year': 1, 'Two year': 2})
-    input_data['PaperlessBilling'] = input_data['PaperlessBilling'].astype(int)
-    input_data['PaymentMethod'] = input_data['PaymentMethod'].map({
-        'Electronic check': 0,
-        'Mailed check': 1,
-        'Bank transfer (automatic)': 2,
-        'Credit card (automatic)': 3
-    })
-    input_data['TotalCharges'] = pd.to_numeric(input_data['TotalCharges'], errors='coerce')
-    input_data = input_data.fillna(0)  # Fill NaN values with 0
+    # Ensure input_data is a DataFrame
+    if isinstance(input_data, dict):
+        input_data = pd.DataFrame([input_data])
+    
+    # Print input_data to debug
+    print("Input Data:")
+    print(input_data)
+    
+    # Define all possible categorical values
+    categorical_values = {
+        'gender': ['Male', 'Female'],
+        'SeniorCitizen': [0, 1],
+        'Partner': [True, False],
+        'Dependents': [True, False],
+        'PhoneService': [True, False],
+        'MultipleLines': ['Yes', 'No', 'No phone service'],
+        'InternetService': ['DSL', 'Fiber optic', 'No'],
+        'OnlineSecurity': ['Yes', 'No', 'No internet service'],
+        'OnlineBackup': ['Yes', 'No', 'No internet service'],
+        'DeviceProtection': ['Yes', 'No', 'No internet service'],
+        'TechSupport': ['Yes', 'No', 'No internet service'],
+        'StreamingTV': ['Yes', 'No', 'No internet service'],
+        'StreamingMovies': ['Yes', 'No', 'No internet service'],
+        'Contract': ['Month-to-month', 'One year', 'Two year'],
+        'PaperlessBilling': [True, False],
+        'PaymentMethod': ['Electronic check', 'Mailed check', 'Bank transfer (automatic)', 'Credit card (automatic)'],
+    }
+    
+    # Fill missing columns with empty strings
+    for col in categorical_values.keys():
+        if col not in input_data.columns:
+            input_data[col] = ''
+    
+    # Convert boolean fields
+    boolean_fields = ['Partner', 'Dependents', 'PaperlessBilling', 'PhoneService', 'SeniorCitizen']
+    for field in boolean_fields:
+        if field in input_data.columns:
+            input_data[field] = input_data[field].map({True: 1, False: 0})
+    
+    # Convert categorical fields to string
+    for field, values in categorical_values.items():
+        if field in input_data.columns:
+            input_data[field] = pd.Categorical(input_data[field], categories=values).codes
+    
+    # Ensure all required columns are present
+    required_columns = set(categorical_values.keys()) | {'MonthlyCharges', 'TotalCharges'}
+    if not required_columns.issubset(set(input_data.columns)):
+        missing_columns = required_columns - set(input_data.columns)
+        raise ValueError(f"Missing columns: {missing_columns}")
+    
     return input_data
