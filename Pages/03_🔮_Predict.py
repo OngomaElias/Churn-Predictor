@@ -92,12 +92,17 @@ def make_prediction(pipeline, encoder):
     # Create a DataFrame
     df = pd.DataFrame(data, columns=columns)
 
+    #save dataFrame to csv file as historic data
+    #df.to_csv('../Data/history.csv')
+
     df['PredictionTime'] = datetime.date.today()
     df['ModelUsed'] = st.session_state['selected_model']
 
     # Write to CSV
+    #save dataFrame to csv file as historic data
     df.to_csv('./data/history.csv', mode='a', header=not os.path.exists('./data/history.csv'), index=False)
 
+    
     # Make prediction
     pred = pipeline.predict(df)
     pred = int(pred[0])
