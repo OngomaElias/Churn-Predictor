@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import plotly.express as px
 
 st.set_page_config(
     page_title='Dashboard Page',
@@ -12,58 +13,79 @@ st.set_page_config(
     layout='wide'
 )
 
-def load_csv(file_path):
-    if os.path.exists(file_path):
-        df = pd.read_csv(file_path)
-        return df
-    else:
-        st.error(f"File not found at {file_path}")
-        return None
 
-def app():
+
+df = pd.read_csv('./Data/full_data.csv')
+
+def eda_dashboard():
+    st.markdown('### EDA Dashboard')
+    col1, col2 = st.columns(2)
+
+    with col1:
+        scatter_plot = px.scatter(df, x = 'gender', y ='tenure', title ='gender to tenure distribution',
+        color = 'Churn', color_discrete_map = {'Yes':'red','No':'yellow'})
+
+        st.plotly_chart(scatter_plot)
+    with col2:
+        pass
+
+
+    gender_histogram = px.histogram(df, x = 'gender')
+
+    st.plotly_chart(gender_histogram)
+
+
+def kpi_dashboard():
+    """
+    This function creates a KPI dashboard.
+    """
+    st.markdown('### Key Performance Indicators')
+    
+    churn_rate = df['Churn'].value_counts(normalize=True).get('Yes', 0) * 100
+    avg_tenure = df['tenure'].mean()
+    data_size = df.size
+
+    col1, col2 =st.columns(2)
+    with col1:
+    
+        st.markdown(f"""
+        <div style="background-color: #CCE5FF; border-radius: 10px; width: 80%; margin-top: 20px; padding: 10px;">
+            <h3 style="margin-left: 10px;">Quick Stats About Dataset</h3>
+            <hr>
+            <h5 style="margin-left: 10px;">Churn Rate: {churn_rate:.2f}%</h5>
+            <hr>
+            <h5 style="margin-left: 10px;">Average Tenure: ${avg_tenure:.2f}</h5>
+            <hr>
+            <h5 style="margin-left: 10px;">Data Size: {data_size}</h5>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        pass
+
+
+
+
+
+
+
+
+
+
+if __name__ == '__main__':
+    """
+    This block of code is executed when the script is run directly.
+    """
     st.title("Dashboard")
-    st.write("Visualize data and model performance here.")
-    
-    file_path = "./Data/full_data.csv"
-    
-    # Load the CSV file
-    df = load_csv(file_path)
-    
-    if df is not None:
-        # Check unique values in the 'Churn' column
-        unique_churn_values = df['Churn'].unique()
-        st.write("Unique Churn Values:", unique_churn_values)
+    col1, col2 = st.columns(2)
+    with col1:
+        pass
+    with col2:
+        selected_dashboard_type = st.selectbox('Select the type of Dashboard', options=['EDA', 'KPI'], key='selected_dashboard_type')
         
-        # Convert non-numeric values to NaN
-        df['Churn'] = pd.to_numeric(df['Churn'], errors='coerce')
-        
-        # Drop rows with NaN values in the 'Churn' column
-        df.dropna(subset=['Churn'], inplace=True)
-        
-        st.write("Summary Statistics")
-        st.write(df.describe())
-
-        # Univariate Analysis
-        st.write("Univariate Analysis")
-        for column in df.columns:
-            if df[column].dtype in ['float64', 'int64']:  # Numeric columns
-                fig, ax = plt.subplots()
-                df[column].hist(bins=30, ax=ax)
-                ax.set_title(f'{column} Distribution')
-                ax.set_xlabel(column)
-                ax.set_ylabel('Frequency')
-                st.pyplot(fig)
-            else:  # Categorical columns
-                st.write(df[column].value_counts())
-
-        st.write("Total Churn Rate")
-        total_churn_rate = df['Churn'].mean()
-        st.write("Total Churn Rate:", total_churn_rate)
-
-        # Rest of the code...
+    if st.session_state['selected_dashboard_type'] == 'EDA':
+        eda_dashboard()
     else:
-        st.write("No data to display.")
+        kpi_dashboard()
 
-# Call the app function to run the Streamlit app
-app()
+
 
