@@ -1,0 +1,15 @@
+credentials:
+  usernames:
+    OngomaElias:
+      email: ongomaelias2@gmail.com
+      logged_in: False # Will be managed automatically
+      name: Elias Ongoma
+      password: '123456' # Will be hashed automatically
+cookie:
+  expiry_days: 0
+  key: some_signature_key # Must be string
+  name: cookie_name
+pre-authorized:
+  emails:
+  - elias.ongoma@azubiafrica.org
+users:
